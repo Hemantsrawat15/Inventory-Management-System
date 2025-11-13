@@ -1,63 +1,36 @@
 'use client';
-import { useState, FormEvent, ChangeEvent } from 'react';
-import { ParseResponse } from '@/lib/types';
-import { parsePDF } from '@/lib/api';
+import { useState, ChangeEvent } from 'react';
+import { FaSyncAlt } from 'react-icons/fa';
 
 interface UploadFormProps {
-  onSuccess: (data: ParseResponse) => void;
+  onFileSelect: (file: File) => void;
+  onSync: () => void;
+  isSyncing: boolean;
+  syncMessage: string;
 }
 
-export default function UploadForm({ onSuccess }: UploadFormProps) {
+export default function UploadForm({ onFileSelect, onSync, isSyncing, syncMessage }: UploadFormProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    if (!file) {
-      setError('Please select a PDF file');
-      return;
-    }
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const data = await parsePDF(file);
-      
-      if (data.success) {
-        onSuccess(data);
-        setFile(null);
-      } else {
-        setError(data.error || 'Failed to parse PDF');
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Network error. Please try again.');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setError(null);
+      onFileSelect(selectedFile);
     }
   };
 
   return (
     <div className="bg-white rounded-lg shadow-lg p-6">
-      <h2 className="text-2xl font-bold mb-4">📄 Upload Shipping Labels PDF</h2>
+      <h2 className="text-2xl font-bold mb-4">📄 Step 1: Upload Your PDF</h2>
       
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Select PDF File
+          <label htmlFor="pdf-upload" className="block text-sm font-medium text-gray-700 mb-2">
+            Select Shipping Labels PDF
           </label>
           <input
+            id="pdf-upload"
             type="file"
             accept=".pdf"
             onChange={handleFileChange}
@@ -71,51 +44,31 @@ export default function UploadForm({ onSuccess }: UploadFormProps) {
           />
           {file && (
             <p className="mt-2 text-sm text-gray-600">
-              Selected: {file.name} ({(file.size / 1024).toFixed(2)} KB)
+              Selected: <span className="font-medium">{file.name}</span>
             </p>
           )}
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
+        {file && (
+          <div className="pt-4 border-t">
+             <h2 className="text-xl font-bold mb-2">📄 Step 2: Process the File</h2>
+             <p className="text-sm text-gray-500 mb-4">Sync with the backend to extract label data and update your inventory. Visual previews will generate automatically below.</p>
+            <button
+              onClick={onSync}
+              disabled={!file || isSyncing}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400"
+            >
+              <FaSyncAlt className={isSyncing ? 'animate-spin' : ''} />
+              {isSyncing ? 'Processing on Server...' : 'Extract Data & Sync Inventory'}
+            </button>
+            {syncMessage && (
+              <p className={`text-sm mt-2 text-center ${syncMessage.includes('Error') || syncMessage.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>
+                {syncMessage}
+              </p>
+            )}
           </div>
         )}
-
-        <button
-          type="submit"
-          disabled={!file || loading}
-          className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
-            !file || loading
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
-        >
-          {loading ? (
-            <span className="flex items-center justify-center">
-              <svg className="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
-                <circle 
-                  className="opacity-25" 
-                  cx="12" 
-                  cy="12" 
-                  r="10" 
-                  stroke="currentColor" 
-                  strokeWidth="4" 
-                  fill="none" 
-                />
-                <path 
-                  className="opacity-75" 
-                  fill="currentColor" 
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" 
-                />
-              </svg>
-              Parsing PDF...
-            </span>
-          ) : (
-            '🚀 Parse PDF'
-          )}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

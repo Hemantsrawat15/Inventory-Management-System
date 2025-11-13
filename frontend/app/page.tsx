@@ -1,29 +1,19 @@
-'use client';
-import { useState } from 'react';
-import UploadForm from '@/components/UploadForm';
-import ResultsDisplay from '@/components/ResultsDisplay';
-import { ParseResponse } from '@/lib/types';
+import Link from 'next/link';
 
 export default function Home() {
-  const [results, setResults] = useState<ParseResponse | null>(null);
-
-  const handleSuccess = (data: ParseResponse): void => {
-    setResults(data);
-  };
-
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">📦 PDF Label Parser</h1>
-          <p className="text-gray-600">Extract SKU, Order ID, Quantity, and Delivery Partner from shipping labels</p>
-        </div>
-
-        <div className="mb-8">
-          <UploadForm onSuccess={handleSuccess} />
-        </div>
-
-        <ResultsDisplay data={results} />
+    <main className="flex min-h-screen flex-col items-center justify-center p-24">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-4">Welcome to Your Inventory Manager</h1>
+        <p className="text-lg text-gray-600 mb-8">
+          The all-in-one solution for processing labels and managing stock.
+        </p>
+        <Link 
+          href="/dashboard" 
+          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+        >
+          Go to Dashboard
+        </Link>
       </div>
     </main>
   );

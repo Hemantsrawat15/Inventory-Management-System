@@ -11,8 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "types": ["node", "express", "multer"]  // 👈 add this line
+    "types": ["node", "express", "multer", "jsonwebtoken", "mongoose", "bcryptjs"]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "src/types/**/*"],
   "exclude": ["node_modules", "dist"]
 }

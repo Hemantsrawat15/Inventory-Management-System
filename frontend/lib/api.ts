@@ -1,20 +1,20 @@
-import { ParseResponse } from './types';
+import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const api = axios.create({
+  baseURL: '/api', // Your API base URL
+});
 
-export async function parsePDF(file: File): Promise<ParseResponse> {
-  const formData = new FormData();
-  formData.append('file', file);
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('authToken');
+  const selectedGstin = localStorage.getItem('selectedGstin');
 
-  const response = await fetch(`${API_URL}/parse-pdf`, {
-    method: 'POST',
-    body: formData,
-  });
-
-  if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error || 'Failed to parse PDF');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  if (selectedGstin) {
+    config.headers['x-gstin'] = selectedGstin;
+  }
+  return config;
+});
 
-  return response.json();
-}
+export default api;
